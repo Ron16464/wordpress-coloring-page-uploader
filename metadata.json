@@ -1,0 +1,5 @@
+{
+  "name": "WordPress Coloring Page Uploader",
+  "description": "A tool to automate the creation of coloring page posts for WordPress. It processes images, generates post HTML with an image gallery and FAQ accordion, and prepares the content for easy publishing.",
+  "requestFramePermissions": []
+}
