@@ -101,9 +101,10 @@ export default function App() {
       const articleText = await generateArticle(postData.postTitle, geminiPrompt);
       setPostData(prev => ({ ...prev, article: articleText }));
       setStatus("Article generated successfully!");
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setStatus(`Error generating article: ${err.message}`);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setStatus(`Error generating article: ${errorMessage}`);
     } finally {
       setIsGeneratingArticle(false);
     }
@@ -156,13 +157,15 @@ export default function App() {
         images: processedImages
       });
       setStatus('Process completed successfully!');
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      let errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      if (errorMessage.includes('401')) {
+      let errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      if (errorMessage.includes('401') || errorMessage.includes('403')) {
           errorMessage = 'Authentication failed. Please check your WordPress credentials in Settings.';
-      } else if (errorMessage.includes('Failed to fetch')) {
+      } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
           errorMessage = 'Network error. Could not connect to WordPress URL. Check CORS settings and URL.';
+      } else if (errorMessage.includes('CORS')) {
+          errorMessage = 'CORS error. Please ensure your WordPress site allows requests from this domain.';
       }
       setStatus(`An error occurred: ${errorMessage}`);
     } finally {

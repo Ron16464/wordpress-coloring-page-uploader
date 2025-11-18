@@ -7,12 +7,13 @@ function getAiClient() {
       // Dynamically import the library only when needed.
       const { GoogleGenAI } = await import('@google/genai');
       
-      if (!process.env.API_KEY) {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) {
         // This check provides a clear error if the environment is not set up.
-        throw new Error("Gemini API key is not configured. The application failed to access the API key.");
+        throw new Error("Gemini API key is not configured. Please set VITE_GEMINI_API_KEY in your .env.local file.");
       }
-      
-      return new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+      return new GoogleGenAI({ apiKey });
     })();
   }
   return aiClientPromise;

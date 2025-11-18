@@ -6,6 +6,13 @@ interface FormData {
   faq: string;
 }
 
+// Escape HTML entities to prevent XSS
+const escapeHtml = (text: string): string => {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+};
+
 const parseFaqs = (faqContent: string) => {
   const faqs = [];
   const lines = faqContent.split('\n').filter(line => line.trim() !== '');
@@ -47,15 +54,15 @@ const generateFaqSchema = (faqs: { question: string, answer: string }[]) => {
 
 const generateFaqAccordionHtml = (faqs: { question: string, answer: string }[]) => {
   if (faqs.length === 0) return '';
-  
+
   const accordionItems = faqs.map((faq, index) => `
     <div class="faq-item" style="border-bottom: 1px solid #e2e8f0; margin-bottom: 1rem;">
       <details>
         <summary style="font-size: 1.125rem; font-weight: 600; cursor: pointer; padding: 1rem 0; list-style: none;">
-          ${faq.question}
+          ${escapeHtml(faq.question)}
         </summary>
         <div class="faq-answer" style="padding-bottom: 1rem; color: #4a5568;">
-          <p>${faq.answer}</p>
+          <p>${escapeHtml(faq.answer)}</p>
         </div>
       </details>
     </div>
@@ -80,7 +87,15 @@ const generateGalleryHtml = (mediaIds: number[]) => {
 
 
 export const generatePostHtml = (formData: FormData, mediaIds: number[]): string => {
-  const articleHtml = `<!-- wp:paragraph -->\n<p>${formData.article.replace(/\n/g, '</p>\n<p>')}</p>\n<!-- /wp:paragraph -->`;
+  // Split article into paragraphs and escape HTML
+  const paragraphs = formData.article
+    .split('\n')
+    .filter(p => p.trim() !== '')
+    .map(p => escapeHtml(p.trim()));
+
+  const articleHtml = paragraphs.length > 0
+    ? `<!-- wp:paragraph -->\n<p>${paragraphs.join('</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>')}</p>\n<!-- /wp:paragraph -->`
+    : '';
   
   const galleryHtml = generateGalleryHtml(mediaIds);
   

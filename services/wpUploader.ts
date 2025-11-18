@@ -2,6 +2,23 @@ import { WpConfig, ProcessedImage, WpMedia, WpCategory, WpPost } from '../types'
 
 const getAuthHeader = (config: WpConfig) => `Basic ${btoa(`${config.username}:${config.password}`)}`;
 
+// Validate WordPress URL format
+export const validateWordPressUrl = (url: string): { valid: boolean; error?: string } => {
+  if (!url || url.trim() === '') {
+    return { valid: false, error: 'URL is required' };
+  }
+
+  try {
+    const urlObj = new URL(url);
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      return { valid: false, error: 'URL must use HTTP or HTTPS protocol' };
+    }
+    return { valid: true };
+  } catch (e) {
+    return { valid: false, error: 'Invalid URL format' };
+  }
+};
+
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({ message: response.statusText }));

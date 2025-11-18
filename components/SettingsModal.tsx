@@ -3,7 +3,7 @@ import { WpConfig } from '../types';
 import { Input, PasswordInput } from './Input';
 import { Button } from './Controls';
 import { XIcon, SaveIcon, LoaderIcon, CheckCircleIcon, XCircleIcon, WifiIcon } from './Icons';
-import { testConnection } from '../services/wpUploader';
+import { testConnection, validateWordPressUrl } from '../services/wpUploader';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -31,6 +31,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
   };
 
   const handleSave = () => {
+    const urlValidation = validateWordPressUrl(config.url);
+    if (!urlValidation.valid) {
+      setTestStatus({ message: `Invalid URL: ${urlValidation.error}`, success: false });
+      return;
+    }
     onSave(config);
   };
 
@@ -40,12 +45,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
     try {
       await testConnection(config);
       setTestStatus({ message: 'Connection successful! Credentials are valid.', success: true });
-    } catch (err: any) {
-      let errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    } catch (err) {
+      let errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       if (errorMessage.includes('401') || errorMessage.includes('403')) {
           errorMessage = 'Authentication failed. Please check your credentials.';
-      } else if (errorMessage.includes('Failed to fetch')) {
+      } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
           errorMessage = 'Network error. Could not connect to the URL. Check CORS or if the URL is correct.';
+      } else if (errorMessage.includes('CORS')) {
+          errorMessage = 'CORS error. Please ensure your WordPress site allows requests from this domain.';
       }
       setTestStatus({ message: `Connection failed: ${errorMessage}`, success: false });
     } finally {

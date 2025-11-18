@@ -4,27 +4,24 @@ import { ProcessedImage } from '../types';
 const A4_WIDTH = 595;
 const A4_HEIGHT = 842;
 
-export const processImages = (
+export const processImages = async (
   files: File[],
   onProgress: (progress: { current: number; total: number }) => void
 ): Promise<ProcessedImage[]> => {
-  return new Promise(async (resolve, reject) => {
-    const processedImages: ProcessedImage[] = [];
-    const total = files.length;
+  const processedImages: ProcessedImage[] = [];
+  const total = files.length;
 
-    for (let i = 0; i < total; i++) {
-      const file = files[i];
-      try {
-        onProgress({ current: i + 1, total });
-        const processedImage = await processSingleImage(file);
-        processedImages.push(processedImage);
-      } catch (error) {
-        reject(`Failed to process image ${file.name}: ${error}`);
-        return;
-      }
+  for (let i = 0; i < total; i++) {
+    const file = files[i];
+    try {
+      onProgress({ current: i + 1, total });
+      const processedImage = await processSingleImage(file);
+      processedImages.push(processedImage);
+    } catch (error) {
+      throw new Error(`Failed to process image ${file.name}: ${error}`);
     }
-    resolve(processedImages);
-  });
+  }
+  return processedImages;
 };
 
 const processSingleImage = (file: File): Promise<ProcessedImage> => {
